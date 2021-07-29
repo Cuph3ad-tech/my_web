@@ -9,17 +9,22 @@ app = Flask(__name__)
 # print(__name__)
 
 # создание БД
-with sql.connect("logs.db") as db:
-	cursor = db.cursor()
-	cursor.execute(
-		"""CREATE TABLE IF NOT EXISTS log_table (
-			form TEXT,
-			address TEXT,
-			user TEXT,
-			result TEXT
-		)"""
-	)
-	db.commit()
+try:
+    with sql.connect("logs.db") as db:
+	    cursor = db.cursor()
+	    cursor.execute(
+		    """CREATE TABLE IF NOT EXISTS log_table (
+			    form TEXT,
+			    address TEXT,
+			    user TEXT,
+			    result TEXT
+		    )"""
+	    )
+	    db.commit()
+except sql.Error as err:
+	print(f"Ошибка БД: {err}")
+except Exception as err:
+	print(f"Что-то пошло не так: {err}")
 
 def hashing(password, num_char):
 	# кодирование
@@ -35,13 +40,18 @@ def hashing(password, num_char):
 	return hex_str
 
 def loging(req, res):
-	with sql.connect("logs.db") as db:
-		cursor = db.cursor()
-		cursor.execute(
-			"INSERT INTO log_table VALUES (?,?,?,?)",
-			(str(req.form), str(req.remote_addr), str(req.user_agent), res)
-		)
-		db.commit()
+    try:
+	    with sql.connect("logs.db") as db:
+		    cursor = db.cursor()
+		    cursor.execute(
+			    "INSERT INTO log_table VALUES (?,?,?,?)",
+			    (str(req.form), str(req.remote_addr), str(req.user_agent), res)
+		    )
+		    db.commit()
+    except sql.Error as err:
+	    print(f"Ошибка БД: {err}")
+    except Exception as err:
+	    print(f"Что-то пошло не так: {err}")
 
 # основная логика нашего сервера
 @app.route("/")
